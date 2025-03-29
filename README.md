@@ -1,19 +1,29 @@
-# 🎈 Blank app template
+# 🧠 Explainable AI Dashboard - Diabetes Prediction
 
-A simple Streamlit app template for you to modify!
+This project demonstrates the use of Explainable AI (XAI) techniques to understand and interpret machine learning model predictions. The app predicts whether a person is diabetic based on medical inputs and explains the decision using SHAP (SHapley Additive exPlanations) plots.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+---
 
-### How to run it on your own machine
+## 🚀 Features
 
-1. Install the requirements
+- **ML Model**: Trained using `RandomForestClassifier`
+- **Explainability**: SHAP summary plot visualizes how features impact model output
+- **User Interface**: Interactive Streamlit web app for predictions
+- **Deployment**: Ready to deploy on Streamlit Cloud
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+---
 
-2. Run the app
+## 🛠️ Tech Stack
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+- Python
+- Streamlit
+- scikit-learn
+- pandas
+- SHAP
+- matplotlib
+- pickle
+
+---
+
+## 📂 Folder Structure
+

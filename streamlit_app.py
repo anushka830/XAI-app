@@ -1,44 +1,49 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
 from PIL import Image
 
-# Load model
-model = joblib.load("diabetes_model.pkl")
+# Load model safely
+try:
+    model = joblib.load('model.pkl')  # Ensure this is a trained model, not an array
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.stop()
 
-st.title("🧠 Diabetes Predictor with Explainable AI (SHAP)")
+# Load and show model accuracy
+try:
+    with open("accuracy.txt", "r") as f:
+        acc = float(f.read())
+    st.sidebar.subheader("📊 Model Accuracy")
+    st.sidebar.write(f"{acc * 100:.2f}%")
+except FileNotFoundError:
+    st.sidebar.warning("⚠️ Accuracy info not found.")
 
-# User Input
-glucose = st.slider("Glucose", 0, 200, 100)
-bmi = st.slider("BMI", 10.0, 50.0, 25.0)
-age = st.slider("Age", 20, 80, 33)
-insulin = st.slider("Insulin", 0, 300, 80)
-pregnancies = st.slider("Pregnancies", 0, 10, 2)
-blood_pressure = st.slider("Blood Pressure", 40, 140, 70)
-skin_thickness = st.slider("Skin Thickness", 0, 100, 20)
-dpf = st.slider("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
+st.title("🧠 Explainable AI - Diabetes Prediction")
 
-input_data = pd.DataFrame({
-    "Pregnancies": [pregnancies],
-    "Glucose": [glucose],
-    "BloodPressure": [blood_pressure],
-    "SkinThickness": [skin_thickness],
-    "Insulin": [insulin],
-    "BMI": [bmi],
-    "DiabetesPedigreeFunction": [dpf],
-    "Age": [age]
-})
+# User inputs
+st.header("Enter Patient Details:")
+pregnancies = st.number_input("Pregnancies", 0, 20)
+glucose = st.number_input("Glucose", 0, 200)
+bp = st.number_input("Blood Pressure", 0, 140)
+skin_thickness = st.number_input("Skin Thickness", 0, 100)
+insulin = st.number_input("Insulin", 0, 900)
+bmi = st.number_input("BMI", 0.0, 70.0)
+dpf = st.number_input("Diabetes Pedigree Function", 0.0, 3.0)
+age = st.number_input("Age", 10, 100)
 
 if st.button("Predict"):
-    prediction = model.predict(input_data)[0]
-    st.success(f"Prediction: {'Diabetic' if prediction == 1 else 'Not Diabetic'}")
-
-    st.subheader("🔍 Explanation (SHAP Summary Plot)")
-    summary_img = Image.open("shap_plots/summary_plot.png")
-    st.image(summary_img, caption="Feature Impact Summary")
-
-    st.subheader("📌 Force Plot for Sample Case")
-    force_img = Image.open("shap_plots/force_plot_0.png")
-    st.image(force_img, caption="SHAP Force Plot (Sample)")
-
+    input_df = pd.DataFrame([[pregnancies, glucose, bp, skin_thickness, insulin, bmi, dpf, age]],
+                            columns=["Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
+                                     "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"])
+    
+    try:
+        result = model.predict(input_df)[0]
+        st.subheader("Prediction Result:")
+        st.write("🔴 Diabetic" if result == 1 else "🟢 Not Diabetic")
+        
+        st.subheader("Model Explanation with SHAP:")
+        image = Image.open("shap_plots/summary_plot.png")
+        st.image(image, caption="SHAP Summary Plot", use_column_width=True)
+    except Exception as e:
+        st.error(f"Prediction error: {e}")
