@@ -44,27 +44,42 @@ if st.button("🚀 Predict"):
         result = model.predict(input_df)[0]
 
         st.subheader("🔎 Prediction Result:")
-        st.success("🟢 Not Diabetic" if result == 0 else "🔴 Diabetic")
+        if result == 1:
+            st.error("🔴 Diabetic")
+            
+            # Home Remedies
+            with st.expander("💡 Home Remedies & Lifestyle Tips"):
+                st.markdown("""
+                - 🥗 **Eat low-carb, high-fiber foods** to stabilize blood sugar.
+                - 🚶 **Exercise daily**, like a 30-minute walk.
+                - 🍵 **Try herbal teas** such as fenugreek, ginger, or cinnamon.
+                - 🧘 **Practice stress relief** through yoga or meditation.
+                - 💤 **Sleep well** – aim for 7-8 hours nightly.
+                - 🧂 **Avoid processed and sugary foods**.
+                - ❗ Always consult your doctor before trying new remedies.
+                """)
+        else:
+            st.success("🟢 Not Diabetic")
+            st.info("✅ Keep up the healthy lifestyle!")
 
         # SHAP Explanation
         st.subheader("📊 Model Explanation with SHAP")
         image = Image.open("shap_plots/summary_plot.png")
         st.image(image, caption="SHAP Summary Plot", use_column_width=True)
 
-        # Explanation for non-tech users
+        # SHAP Explanation for users
         with st.expander("🔍 What does this plot mean?"):
             st.markdown("""
             - This graph shows how different health factors (like **Glucose** or **BMI**) influence the AI’s decision.
             - **Each dot** represents a person in our dataset.
-            - **Color of dots**:
-              - 🔴 Red/Pink = Higher values (e.g. more glucose or insulin)
-              - 🔵 Blue = Lower values (e.g. lower BMI or blood pressure)
-            - **Right side (positive values)** means the feature is pushing towards being **Diabetic**.
-            - **Left side (negative values)** means it's pushing towards **Not Diabetic**.
-            
-            ✅ This helps make the prediction more transparent and understandable.
+            - **Dot Colors**:
+              - 🔴 Red = Higher feature values (e.g. high glucose)
+              - 🔵 Blue = Lower feature values (e.g. low insulin)
+            - **Dots on the right** → feature supports diabetic prediction.
+            - **Dots on the left** → feature supports not diabetic.
             """)
 
     except Exception as e:
         st.error(f"Prediction error: {e}")
+
 
