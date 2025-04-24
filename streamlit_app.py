@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 from PIL import Image
-
+import shap
 # Load trained model
 try:
     model = joblib.load('model.pkl')
@@ -39,15 +39,12 @@ if st.button("🚀 Predict"):
     input_df = pd.DataFrame([[pregnancies, glucose, bp, skin_thickness, insulin, bmi, dpf, age]],
                              columns=["Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
                                       "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"])
-
     try:
         result = model.predict(input_df)[0]
 
         st.subheader("🔎 Prediction Result:")
         if result == 1:
             st.error("🔴 Diabetic")
-            
-            # Home Remedies
             with st.expander("💡 Home Remedies & Lifestyle Tips"):
                 st.markdown("""
                 - 🥗 **Eat low-carb, high-fiber foods** to stabilize blood sugar.
@@ -62,24 +59,34 @@ if st.button("🚀 Predict"):
             st.success("🟢 Not Diabetic")
             st.info("✅ Keep up the healthy lifestyle!")
 
-        # SHAP Explanation
+        # SHAP Summary Plot
         st.subheader("📊 Model Explanation with SHAP")
         image = Image.open("shap_plots/summary_plot.png")
         st.image(image, caption="SHAP Summary Plot", use_column_width=True)
 
-        # SHAP Explanation for users
         with st.expander("🔍 What does this plot mean?"):
             st.markdown("""
             - This graph shows how different health factors (like **Glucose** or **BMI**) influence the AI’s decision.
             - **Each dot** represents a person in our dataset.
-            - **Dot Colors**:
-              - 🔴 Red = Higher feature values (e.g. high glucose)
-              - 🔵 Blue = Lower feature values (e.g. low insulin)
-            - **Dots on the right** → feature supports diabetic prediction.
-            - **Dots on the left** → feature supports not diabetic.
+            - 🔴 Red = High value (e.g., high glucose), 🔵 Blue = Low value
             """)
+
+        # ✅ Feature Contribution Bar
+        st.subheader("📌 Feature Contribution for This Prediction")
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(input_df)
+
+        shap_df = pd.DataFrame({
+            'Feature': input_df.columns,
+            'SHAP Value': shap_values[0][0]  # only index 0 needed!
+        }).sort_values(by="SHAP Value")
+
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.barh(shap_df['Feature'], shap_df['SHAP Value'], color='skyblue')
+        ax.set_title("SHAP Value Impact (This Prediction)")
+        ax.set_xlabel("Contribution to Diabetic Prediction")
+        st.pyplot(fig)
 
     except Exception as e:
         st.error(f"Prediction error: {e}")
-
-
